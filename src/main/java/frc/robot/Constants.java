@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
+import swervelib.math.Matter;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -15,5 +19,28 @@ package frc.robot;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+  }
+
+  public static class driveConstants {
+      public static final double balanceP = 0.05;
+      public static final double balanceI = 0;
+      public static final double balanceD = 0;
+  
+      public static final double ROBOT_MASS = 45.35924; // 32lbs * kg per pound
+  
+      // a matter var for limiting velocity
+      public static final Matter CHASSIS = new Matter(new Translation3d(0, 0,
+              Units.inchesToMeters(4)), ROBOT_MASS);
+  
+      // loop time to use
+      public static final double LOOP_TIME = 0.13;
+      public static final double maxSpeed = 4;
+
+      public static final double WHEEL_DIAMETER = 3; //TODO: measure better wheel diameter
+      public static final double DRIVE_GEAR_RATIO = 4.714285714285714;
+      public static final double DRIVE_ENCODER_RESOLUTION = 1.0;
+
+      public static final double STEERING_GEAR_RATIO = 1;
+      public static final double STEERING_ENCODER_RESOLUTION = 1;
   }
 }
