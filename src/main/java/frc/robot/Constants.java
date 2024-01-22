@@ -43,4 +43,32 @@ public final class Constants {
       public static final double STEERING_GEAR_RATIO = 1;
       public static final double STEERING_ENCODER_RESOLUTION = 1;
   }
+
+  public static class collectorConstants {
+    public static final int collectorMotorID = 9;
+
+    public static final double collectorMotorCurrentLimit = 40;
+  }
+
+  public static class climberConstants {
+    public static final int climberMotorID = 10;
+
+    public static final double lowerSoftLimit = 0;
+    public static final double upperSoftLimit = 100;
+
+    public static final double climberMotorCurrentLimit = 50;
+  }
+
+  public static class cobraConstants {
+    public static final int rotationMotorID = 11;
+    public static final int squisherMotorID = 12;
+    public static final int indexerMotorID = 13;
+
+    public static final double rotationMotorCurrentLimit = 50;
+    public static final double squisherMotorCurrentLimit = 40;
+    public static final int indexerMotorCurrentLimit = 20;
+
+    public static final double lowerRotationSoftLimit = 0;
+    public static final double upperRotationSoftLimit = 100;
+  }
 }
