@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -13,39 +14,48 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import au.grapplerobotics.LaserCan;
 
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.cobraConstants;
 
 public class Cobra extends SubsystemBase {
-    private TalonFX rotationMotor = new TalonFX(cobraConstants.rotationMotorID);
-    private TalonFX squisherMotor = new TalonFX(cobraConstants.squisherMotorID);
-    private CANSparkMax indexerMotor = new CANSparkMax(
-        cobraConstants.indexerMotorID, 
-        MotorType.kBrushless);
+    private final TalonFX pivotMotor = new TalonFX(cobraConstants.pivotMotorID);
+    private final TalonFX squisherMotor = new TalonFX(cobraConstants.squisherMotorID);
+    private final CANSparkMax indexerMotor = new CANSparkMax(
+            cobraConstants.indexerMotorID,
+            MotorType.kBrushless);
 
-    private SparkPIDController indexerController;
+    private final SparkPIDController indexerController;
+
+    private final DutyCycleEncoder pivotEncoder =
+            new DutyCycleEncoder(cobraConstants.pivotEncoderID);
+
+    private final LaserCan laserCan1 = new LaserCan(cobraConstants.laserCan1ID);
+    private final LaserCan laserCan2 = new LaserCan(cobraConstants.laserCan2ID);
 
     public Cobra() {
-        TalonFXConfiguration rotationConfigs = new TalonFXConfiguration();
+        TalonFXConfiguration pivotConfigs = new TalonFXConfiguration();
+        FeedbackConfigs pivotFeedbackConfigs = new FeedbackConfigs();
         TalonFXConfiguration squisherConfigs = new TalonFXConfiguration();
 
-        rotationConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        rotationConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        rotationConfigs.SoftwareLimitSwitch.ForwardSoftLimitThreshold = cobraConstants.upperRotationSoftLimit;
-        rotationConfigs.SoftwareLimitSwitch.ReverseSoftLimitThreshold = cobraConstants.lowerRotationSoftLimit;
-        rotationConfigs.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        rotationConfigs.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        rotationConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.rotationMotorCurrentLimit;
-        rotationConfigs.Audio.BeepOnConfig = true;
+        pivotConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        pivotConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitThreshold = cobraConstants.upperRotationSoftLimit;
+        pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitThreshold = cobraConstants.lowerRotationSoftLimit;
+        pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        pivotConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.rotationMotorCurrentLimit;
+        pivotConfigs.Audio.BeepOnConfig = true;
 
         squisherConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         squisherConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         squisherConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.squisherMotorCurrentLimit;
         squisherConfigs.Audio.BeepOnConfig = true;
 
-        rotationMotor.getConfigurator().apply(rotationConfigs);
+        pivotMotor.getConfigurator().apply(pivotConfigs);
         squisherMotor.getConfigurator().apply(squisherConfigs);
 
         indexerMotor.setIdleMode(IdleMode.kBrake);
@@ -58,15 +68,15 @@ public class Cobra extends SubsystemBase {
     // rotation motor basic setters
 
     public void setRotation(double speed) {
-        rotationMotor.set(speed);
+        pivotMotor.set(speed);
     }
 
     public void setRotationPos(double pos) {
-        rotationMotor.setControl(new PositionVoltage(pos));
+        pivotMotor.setControl(new PositionVoltage(pos));
     }
 
     public void stopRotation() {
-        rotationMotor.stopMotor();
+        pivotMotor.stopMotor();
     }
 
     // squisher motor basic setters

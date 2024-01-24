@@ -19,6 +19,7 @@ import swervelib.math.Matter;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kCoDriverControllerPort = 0;
   }
 
   public static class driveConstants {
@@ -36,7 +37,7 @@ public final class Constants {
       public static final double LOOP_TIME = 0.13;
       public static final double maxSpeed = 4;
 
-      public static final double WHEEL_DIAMETER = 3; //TODO: measure better wheel diameter
+      public static final double WHEEL_DIAMETER = 3.36;
       public static final double DRIVE_GEAR_RATIO = 4.714285714285714;
       public static final double DRIVE_ENCODER_RESOLUTION = 1.0;
 
@@ -60,9 +61,14 @@ public final class Constants {
   }
 
   public static class cobraConstants {
-    public static final int rotationMotorID = 11;
+    public static final int pivotMotorID = 11;
     public static final int squisherMotorID = 12;
     public static final int indexerMotorID = 13;
+
+    public static final int laserCan1ID = 14;
+    public static final int laserCan2ID = 15;
+
+    public static final int pivotEncoderID = 0;
 
     public static final double rotationMotorCurrentLimit = 50;
     public static final double squisherMotorCurrentLimit = 40;
