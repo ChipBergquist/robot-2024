@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -16,10 +15,12 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import au.grapplerobotics.LaserCan;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.cobraConstants;
+
 
 public class Cobra extends SubsystemBase {
     private final TalonFX pivotMotor = new TalonFX(cobraConstants.pivotMotorID);
@@ -33,12 +34,13 @@ public class Cobra extends SubsystemBase {
     private final DutyCycleEncoder pivotEncoder =
             new DutyCycleEncoder(cobraConstants.pivotEncoderID);
 
+    private final PIDController pivotPID = new PIDController(cobraConstants.pivotP, cobraConstants.pivotI, cobraConstants.pivotD);
+
     private final LaserCan laserCan1 = new LaserCan(cobraConstants.laserCan1ID);
     private final LaserCan laserCan2 = new LaserCan(cobraConstants.laserCan2ID);
 
     public Cobra() {
         TalonFXConfiguration pivotConfigs = new TalonFXConfiguration();
-        FeedbackConfigs pivotFeedbackConfigs = new FeedbackConfigs();
         TalonFXConfiguration squisherConfigs = new TalonFXConfiguration();
 
         pivotConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -61,6 +63,7 @@ public class Cobra extends SubsystemBase {
         indexerMotor.setIdleMode(IdleMode.kBrake);
         indexerMotor.setInverted(false);
         indexerMotor.setSmartCurrentLimit(cobraConstants.indexerMotorCurrentLimit);
+
         
         indexerController = indexerMotor.getPIDController();
     }

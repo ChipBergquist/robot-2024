@@ -70,6 +70,10 @@ public final class Constants {
 
     public static final int pivotEncoderID = 0;
 
+    public static final double pivotP = 0.01;
+    public static final double pivotI = 0;
+    public static final double pivotD = 0;
+
     public static final double rotationMotorCurrentLimit = 50;
     public static final double squisherMotorCurrentLimit = 40;
     public static final int indexerMotorCurrentLimit = 20;
