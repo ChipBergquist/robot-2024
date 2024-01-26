@@ -80,5 +80,7 @@ public final class Constants {
 
     public static final double lowerRotationSoftLimit = 0;
     public static final double upperRotationSoftLimit = 100;
+
+    public static final double pivotCollectAngle = 15;
   }
 }

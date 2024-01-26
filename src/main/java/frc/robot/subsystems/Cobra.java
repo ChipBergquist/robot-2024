@@ -1,25 +1,24 @@
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
+import au.grapplerobotics.LaserCan;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import au.grapplerobotics.LaserCan;
-
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.cobraConstants;
+
+import java.util.function.DoubleSupplier;
 
 
 public class Cobra extends SubsystemBase {
@@ -34,7 +33,10 @@ public class Cobra extends SubsystemBase {
     private final DutyCycleEncoder pivotEncoder =
             new DutyCycleEncoder(cobraConstants.pivotEncoderID);
 
-    private final PIDController pivotPID = new PIDController(cobraConstants.pivotP, cobraConstants.pivotI, cobraConstants.pivotD);
+    private final PIDController pivotPID = new PIDController(
+            cobraConstants.pivotP,
+            cobraConstants.pivotI,
+            cobraConstants.pivotD);
 
     private final LaserCan laserCan1 = new LaserCan(cobraConstants.laserCan1ID);
     private final LaserCan laserCan2 = new LaserCan(cobraConstants.laserCan2ID);
@@ -64,21 +66,26 @@ public class Cobra extends SubsystemBase {
         indexerMotor.setInverted(false);
         indexerMotor.setSmartCurrentLimit(cobraConstants.indexerMotorCurrentLimit);
 
-        
         indexerController = indexerMotor.getPIDController();
+    }
+
+    @Override
+    public void periodic() {
+        double speed = pivotPID.calculate(pivotEncoder.getAbsolutePosition());
+        pivotMotor.setVoltage(speed);
     }
 
     // rotation motor basic setters
 
-    public void setRotation(double speed) {
+    public void setPivotSpeed(double speed) {
         pivotMotor.set(speed);
     }
 
-    public void setRotationPos(double pos) {
-        pivotMotor.setControl(new PositionVoltage(pos));
+    public void setPivotPos(double pos) {
+        pivotPID.setSetpoint(pos);
     }
 
-    public void stopRotation() {
+    public void stopPivot() {
         pivotMotor.stopMotor();
     }
 
@@ -114,16 +121,16 @@ public class Cobra extends SubsystemBase {
 
     // rotation motor commands
 
-    public Command setRotationCommand(DoubleSupplier speed) {
-        return this.run(() -> setRotation(speed.getAsDouble()));
+    public Command setPivotCommand(DoubleSupplier speed) {
+        return this.run(() -> setPivotSpeed(speed.getAsDouble()));
     }
 
-    public Command setRotationPosCommand(DoubleSupplier pos) {
-        return this.run(() -> setRotationPos(pos.getAsDouble()));
+    public Command setPivotPosCommand(DoubleSupplier pos) {
+        return this.run(() -> setPivotPos(pos.getAsDouble())).until(pivotPID::atSetpoint);
     }
 
-    public Command stopRotationCommand() {
-        return this.runOnce(() -> stopRotation());
+    public Command stopPivotCommand() {
+        return this.runOnce(() -> stopPivot());
     }
 
     // squisher motor commands
@@ -152,5 +159,10 @@ public class Cobra extends SubsystemBase {
 
     public Command stopIndexerCommand() {
         return this.runOnce(() -> stopIndexer());
+    }
+
+    public Command CobraCollect() {
+        return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
+                andThen(Commands.parallel(setSquisherCommand(() -> -0.5)));
     }
 }
