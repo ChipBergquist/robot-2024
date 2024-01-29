@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
+import au.grapplerobotics.ConfigurationFailedException;
 import au.grapplerobotics.LaserCan;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -11,7 +13,6 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -32,11 +33,6 @@ public class Cobra extends SubsystemBase {
 
     private final DutyCycleEncoder pivotEncoder =
             new DutyCycleEncoder(cobraConstants.pivotEncoderID);
-
-    private final PIDController pivotPID = new PIDController(
-            cobraConstants.pivotP,
-            cobraConstants.pivotI,
-            cobraConstants.pivotD);
 
     private final LaserCan laserCan1 = new LaserCan(cobraConstants.laserCan1ID);
     private final LaserCan laserCan2 = new LaserCan(cobraConstants.laserCan2ID);
@@ -67,22 +63,25 @@ public class Cobra extends SubsystemBase {
         indexerMotor.setSmartCurrentLimit(cobraConstants.indexerMotorCurrentLimit);
 
         indexerController = indexerMotor.getPIDController();
-    }
 
-    @Override
-    public void periodic() {
-        double speed = pivotPID.calculate(pivotEncoder.getAbsolutePosition());
-        pivotMotor.setVoltage(speed);
+        pivotMotor.setPosition(pivotEncoder.getAbsolutePosition());
+
+        try {
+            laserCan1.setRangingMode(LaserCan.RangingMode.SHORT);
+            laserCan2.setRangingMode(LaserCan.RangingMode.SHORT);
+        } catch (ConfigurationFailedException e) {
+            System.out.println("setting laser can ranging mode failed");
+        }
     }
 
     // rotation motor basic setters
 
     public void setPivotSpeed(double speed) {
-        pivotMotor.set(speed);
+        pivotMotor.set(speed*cobraConstants.pivotGearRatio);
     }
 
     public void setPivotPos(double pos) {
-        pivotPID.setSetpoint(pos);
+        pivotMotor.setControl(new PositionVoltage(pos*cobraConstants.pivotGearRatio));
     }
 
     public void stopPivot() {
@@ -126,11 +125,12 @@ public class Cobra extends SubsystemBase {
     }
 
     public Command setPivotPosCommand(DoubleSupplier pos) {
-        return this.run(() -> setPivotPos(pos.getAsDouble())).until(pivotPID::atSetpoint);
+        return this.run(() -> setPivotPos(pos.getAsDouble())).
+                until(() -> pivotMotor.getClosedLoopError().getValueAsDouble() < cobraConstants.pivotAngleTolerance);
     }
 
     public Command stopPivotCommand() {
-        return this.runOnce(() -> stopPivot());
+        return this.runOnce(this::stopPivot);
     }
 
     // squisher motor commands
@@ -140,11 +140,12 @@ public class Cobra extends SubsystemBase {
     }
 
     public Command setsquisherVelCommand(DoubleSupplier vel) {
-        return this.run(() -> setSquisherVel(vel.getAsDouble()));
+        return this.run(() -> setSquisherVel(vel.getAsDouble())).
+                until(() -> squisherMotor.getClosedLoopError().getValueAsDouble() < cobraConstants.squisherSpeedTolerance);
     } 
 
     public Command stopSquisherCommand() {
-        return this.runOnce(() -> stopSquisher());
+        return this.runOnce(this::stopSquisher);
     }
 
     // indexer motor commands
@@ -158,13 +159,14 @@ public class Cobra extends SubsystemBase {
     }
 
     public Command stopIndexerCommand() {
-        return this.runOnce(() -> stopIndexer());
+        return this.runOnce(this::stopIndexer);
     }
 
     public Command CobraCollect() {
         return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
                 andThen(Commands.parallel(
                         setSquisherCommand(() -> -0.5),
-                        setIndexerCommand(() -> -0.5))).until(() -> laserCan2.getMeasurement().distance_mm < 5);
+                        setIndexerCommand(() -> -0.5*cobraConstants.squisherGearRatio))).
+                until(() -> laserCan2.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance);
     }
 }

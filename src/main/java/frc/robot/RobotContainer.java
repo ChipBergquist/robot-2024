@@ -22,10 +22,16 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  public final Drive drive = new Drive();
+
+  public final Camera GamePieceCam = new Camera("GamePiece");
+  public final Camera frontTagCam = new Camera("frontTag", Constants.driveConstants.frontTagCamPose);
+  public final Camera backTagCam = new Camera("backTag", Constants.driveConstants.backTagCamPose);
+  public final Drive drive = new Drive(GamePieceCam, frontTagCam, backTagCam);
   public final Cobra cobra = new Cobra();
   public final Collector collector = new Collector();
   public final Climber climber = new Climber();
+
+
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driverController =
@@ -36,6 +42,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+
     drive.setDefaultCommand(drive.driveWithJoysticks(
         driverController::getLeftX, 
         driverController::getLeftY, 
@@ -56,6 +63,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+
   }
 
   /**

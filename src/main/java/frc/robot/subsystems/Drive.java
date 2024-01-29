@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -21,7 +22,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Camera;
 import frc.robot.Constants.driveConstants;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.targeting.PhotonTrackedTarget;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
 import swervelib.parser.SwerveParser;
@@ -31,7 +35,17 @@ public class Drive extends SubsystemBase {
     File swerveJsonDir = new File(Filesystem.getDeployDirectory(),"swerve");
 	SwerveDrive drive;
 
-    public Drive() {
+    Camera gamePieceCam;
+    Camera frontTagCam;
+    Camera backTagCam;
+
+    private Boolean collected = false;
+
+    public Drive(Camera gamePieceCam, Camera frontTagCam, Camera backTagCam) {
+        this.gamePieceCam = gamePieceCam;
+        this.frontTagCam = frontTagCam;
+        this.backTagCam = backTagCam;
+
         // set the swerve telemetry's verbosity
         SwerveDriveTelemetry.verbosity = SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
 
@@ -61,23 +75,21 @@ public class Drive extends SubsystemBase {
     }
 
     private void updatePose() {
-        // TODO: implement vision class
-
-        // Optional<EstimatedRobotPose> frontResult = Vision.getFrontPose(drive.getPose());
-        // if (frontResult.isPresent()) {
-		// 	EstimatedRobotPose camPose = frontResult.get();
-		// 	drive.addVisionMeasurement(
-        //         camPose.estimatedPose.toPose2d(),
-        //         camPose.timestampSeconds);
-		// }
+         Optional<EstimatedRobotPose> frontResult = frontTagCam.getPose(drive.getPose());
+         if (frontResult.isPresent()) {
+		 	EstimatedRobotPose camPose = frontResult.get();
+		 	drive.addVisionMeasurement(
+                 camPose.estimatedPose.toPose2d(),
+                 camPose.timestampSeconds);
+		 }
         
-        // Optional<EstimatedRobotPose> backResult = Vision.getFrontPose(drive.getPose());
-        // if (backResult.isPresent()) {
-		// 	EstimatedRobotPose camPose = backResult.get();
-		// 	drive.addVisionMeasurement(
-        //         camPose.estimatedPose.toPose2d(),
-        //         camPose.timestampSeconds);
-		// }
+         Optional<EstimatedRobotPose> backResult = backTagCam.getPose(drive.getPose());
+         if (backResult.isPresent()) {
+		 	EstimatedRobotPose camPose = backResult.get();
+		 	drive.addVisionMeasurement(
+                 camPose.estimatedPose.toPose2d(),
+                 camPose.timestampSeconds);
+		 }
     }
 
     public Rotation2d getRoll() {
@@ -92,8 +104,8 @@ public class Drive extends SubsystemBase {
         return drive.getYaw();
     }
 
-    public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-		drive.drive(translation, rotation, fieldRelative, isOpenLoop);
+    public void drive(Translation2d translation, double rotation, boolean fieldRelative) {
+		drive.drive(translation, rotation, fieldRelative, false);
 	}
 
     public Command driveWithJoysticks(DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier rotation, BooleanSupplier FieldRelative) {
@@ -128,6 +140,23 @@ public class Drive extends SubsystemBase {
     drive.resetOdometry(initialHolonomicPose);
   }
 
+  public Command driveToNote() {
+      return this.runOnce(() -> collected = false).andThen(this.run(() -> {
+          PhotonTrackedTarget target = gamePieceCam.getBestTarget();
+          double angle = 0;
+          if (target != null) {
+              angle = target.getYaw();
+              drive(new Translation2d(driveConstants.autoCollectForwardVel, 0),
+                      Math.min(angle*-driveConstants.autoCollectTurnP, driveConstants.autoCollectMaxTurnVel),
+                      false);
+          }
+          else {
+              drive(new Translation2d(0, 0), 0, false);
+              collected = true;
+          }
+      })).until(() -> collected);
+  }
+
     public void defineAutoBuilder() {
 		AutoBuilder.configureHolonomic(
         this::getPose, // Robot pose supplier
@@ -144,7 +173,7 @@ public class Drive extends SubsystemBase {
                                          driveConstants.maxSpeed,
                                          // Max module speed, in m/s
                                          drive.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
-                                         // Drive base radius in meters. Distance from robot center to furthest module.
+                                         // Drive base radius in meters. Distance from robot center to the furthest module.
                                          new ReplanningConfig()
                                          // Default path replanning config. See the API for the options here
         ),

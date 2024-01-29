@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
@@ -23,26 +25,29 @@ public final class Constants {
   }
 
   public static class driveConstants {
-      public static final double balanceP = 0.05;
-      public static final double balanceI = 0;
-      public static final double balanceD = 0;
   
       public static final double ROBOT_MASS = 45.35924; // 32lbs * kg per pound
   
       // a matter var for limiting velocity
       public static final Matter CHASSIS = new Matter(new Translation3d(0, 0,
               Units.inchesToMeters(4)), ROBOT_MASS);
+
+      public static final Transform3d frontTagCamPose = new Transform3d(0, 0, 0, new Rotation3d(0, 0, 0));
+      public static final Transform3d backTagCamPose = new Transform3d(0, 0, 0, new Rotation3d(0, 0, 0));
   
       // loop time to use
-      public static final double LOOP_TIME = 0.13;
       public static final double maxSpeed = 4;
 
-      public static final double WHEEL_DIAMETER = 3.36;
+      public static final double WHEEL_DIAMETER = 3.036;
       public static final double DRIVE_GEAR_RATIO = 4.714285714285714;
       public static final double DRIVE_ENCODER_RESOLUTION = 1.0;
 
       public static final double STEERING_GEAR_RATIO = 1;
       public static final double STEERING_ENCODER_RESOLUTION = 1;
+
+      public static final double autoCollectForwardVel = 0.65;// TODO: Tune me on real robot
+      public static final double autoCollectTurnP = 0.041; // TODO: Tune me on real robot
+      public static final double autoCollectMaxTurnVel = 0.3; // TODO: Tune me on real robot
   }
 
   public static class collectorConstants {
@@ -70,10 +75,6 @@ public final class Constants {
 
     public static final int pivotEncoderID = 0;
 
-    public static final double pivotP = 0.01;
-    public static final double pivotI = 0;
-    public static final double pivotD = 0;
-
     public static final double rotationMotorCurrentLimit = 50;
     public static final double squisherMotorCurrentLimit = 40;
     public static final int indexerMotorCurrentLimit = 20;
@@ -82,5 +83,12 @@ public final class Constants {
     public static final double upperRotationSoftLimit = 100;
 
     public static final double pivotCollectAngle = 15;
+    public static final double pivotGearRatio = 60;
+    public static final double squisherGearRatio = 12;
+    public static final double pivotAngleTolerance = 0.1;
+
+    public static final double squisherSpeedTolerance = 0.5;
+
+    public static final double laserCanDetectionTolerance = 5;
   }
 }
