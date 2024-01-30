@@ -72,8 +72,7 @@ public final class Constants {
 
     public static final int laserCan1ID = 14;
     public static final int laserCan2ID = 15;
-
-    public static final int pivotEncoderID = 0;
+    public static final int pivotEncoderID = 16;
 
     public static final double rotationMotorCurrentLimit = 50;
     public static final double squisherMotorCurrentLimit = 40;
