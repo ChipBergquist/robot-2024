@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import au.grapplerobotics.ConfigurationFailedException;
 import au.grapplerobotics.LaserCan;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -23,7 +24,8 @@ import java.util.function.DoubleSupplier;
 
 
 public class Cobra extends SubsystemBase {
-    private final TalonFX pivotMotor = new TalonFX(cobraConstants.pivotMotorID);
+    private final TalonFX pivotMotor1 = new TalonFX(cobraConstants.pivotMotor1ID);
+    private final TalonFX pivotMotor2 = new TalonFX(cobraConstants.pivotMotor2ID);
     private final TalonFX squisherMotor = new TalonFX(cobraConstants.squisherMotorID);
     private final CANSparkMax indexerMotor = new CANSparkMax(
             cobraConstants.indexerMotorID,
@@ -54,7 +56,10 @@ public class Cobra extends SubsystemBase {
         squisherConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.squisherMotorCurrentLimit;
         squisherConfigs.Audio.BeepOnConfig = true;
 
-        pivotMotor.getConfigurator().apply(pivotConfigs);
+        pivotMotor1.getConfigurator().apply(pivotConfigs);
+        pivotMotor2.getConfigurator().apply(pivotConfigs);
+        pivotMotor2.setControl(new Follower(pivotMotor1.getDeviceID(), false));
+
         squisherMotor.getConfigurator().apply(squisherConfigs);
 
         indexerMotor.setIdleMode(IdleMode.kBrake);
@@ -74,15 +79,15 @@ public class Cobra extends SubsystemBase {
     // rotation motor basic setters
 
     public void setPivotSpeed(double speed) {
-        pivotMotor.set(speed*cobraConstants.pivotGearRatio);
+        pivotMotor1.set(speed*cobraConstants.pivotGearRatio);
     }
 
     public void setPivotPos(double pos) {
-        pivotMotor.setControl(new PositionVoltage(pos*cobraConstants.pivotGearRatio));
+        pivotMotor1.setControl(new PositionVoltage(pos*cobraConstants.pivotGearRatio));
     }
 
     public void stopPivot() {
-        pivotMotor.stopMotor();
+        pivotMotor1.stopMotor();
     }
 
     // squisher motor basic setters
@@ -123,7 +128,7 @@ public class Cobra extends SubsystemBase {
 
     public Command setPivotPosCommand(DoubleSupplier pos) {
         return this.run(() -> setPivotPos(pos.getAsDouble())).
-                until(() -> pivotMotor.getClosedLoopError().getValueAsDouble() < cobraConstants.pivotAngleTolerance);
+                until(() -> pivotMotor1.getClosedLoopError().getValueAsDouble() < cobraConstants.pivotAngleTolerance);
     }
 
     public Command stopPivotCommand() {

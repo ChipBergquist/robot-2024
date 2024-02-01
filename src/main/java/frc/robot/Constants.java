@@ -57,7 +57,8 @@ public final class Constants {
   }
 
   public static class climberConstants {
-    public static final int climberMotorID = 10;
+    public static final int climberMotor1ID = 10;
+      public static final int climberMotor2ID = 11;
 
     public static final double lowerSoftLimit = 0;
     public static final double upperSoftLimit = 100;
@@ -66,13 +67,14 @@ public final class Constants {
   }
 
   public static class cobraConstants {
-    public static final int pivotMotorID = 11;
-    public static final int squisherMotorID = 12;
-    public static final int indexerMotorID = 13;
+    public static final int pivotMotor1ID = 12;
+    public static final int pivotMotor2ID = 13;
+    public static final int squisherMotorID = 14;
+    public static final int indexerMotorID = 15;
 
-    public static final int laserCan1ID = 14;
-    public static final int laserCan2ID = 15;
-    public static final int pivotEncoderID = 16;
+    public static final int laserCan1ID = 16;
+    public static final int laserCan2ID = 17;
+    public static final int pivotEncoderID = 18;
 
     public static final double rotationMotorCurrentLimit = 50;
     public static final double squisherMotorCurrentLimit = 40;
