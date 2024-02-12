@@ -4,15 +4,18 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Cobra;
 import frc.robot.subsystems.Collector;
 import frc.robot.subsystems.Drive;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -31,11 +34,11 @@ public class RobotContainer {
   public final Collector collector = new Collector();
   public final Climber climber = new Climber();
 
+  private Boolean shootingInSpeaker = false;
 
-
-  // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
+
 
   private final CommandXboxController coDriverController = 
       new CommandXboxController(OperatorConstants.kCoDriverControllerPort);
@@ -63,7 +66,29 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    driverController.leftBumper().whileTrue(
+            cobra.cobraCollect().
+            alongWith(collector.collect(cobra.laserCan2Activated())));
 
+    driverController.rightBumper().whileTrue(shootingInSpeaker ?
+                    Commands.parallel(
+                            drive.run(() -> {
+                                    ChassisSpeeds speeds = drive.getTargetSpeeds(
+                                            driverController.getLeftX(),
+                                            driverController.getLeftY(),
+                                            drive.speakerShootAngle());
+                                    drive.drive(
+                                            new Translation2d(
+                                                    speeds.vxMetersPerSecond,
+                                                    speeds.vyMetersPerSecond),
+                                            speeds.omegaRadiansPerSecond,
+                                            true);
+                            }),
+                            cobra.ShootSpeaker(drive::getPose)) :
+                            drive.driveToPose(new Pose2d()).andThen(cobra.scoreAmp()));
+
+    coDriverController.x().onTrue(Commands.runOnce(() -> shootingInSpeaker = false));
+    coDriverController.y().onTrue(Commands.runOnce(() -> shootingInSpeaker = true));
   }
 
   /**

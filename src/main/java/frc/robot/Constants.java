@@ -36,7 +36,7 @@ public final class Constants {
       public static final Transform3d backTagCamPose = new Transform3d(0, 0, 0, new Rotation3d(0, 0, 0));
   
       // loop time to use
-      public static final double maxSpeed = 4;
+      public static final double maxSpeed = Units.feetToMeters(14.5);
 
       public static final double WHEEL_DIAMETER = 3.036;
       public static final double DRIVE_GEAR_RATIO = 4.714285714285714;
@@ -91,5 +91,18 @@ public final class Constants {
     public static final double squisherSpeedTolerance = 0.5;
 
     public static final double laserCanDetectionTolerance = 5;
+    public static final double squisherShootSpeed = 100;
+    public static final double pivotAmpPos = 90;
+  }
+
+  public final class Field{
+      public static final double blueSpeakerY = 5.612;
+      public static final double redSpeakerY = 2.636;
+      public static final double speakerWidth = 105;
+      public static final double speakerX = 0.23;//16.412;
+      public static final double speakerZ = 2.045; //height of opening
+      public static final double blueAmpX = 0;
+      public static final double redAmpX = 0;
+      public static final double AmpY = 0;
   }
 }

@@ -1,0 +1,31 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.343662687325375,
+      "y": 3.5915671831343663
+    },
+    "rotation": -5.527540151656203
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "start2note1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "note12speaker"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

@@ -1,19 +1,19 @@
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.collectorConstants;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+
 public class Collector extends SubsystemBase {
-    private TalonFX collectorMotor = new TalonFX(collectorConstants.collectorMotorID);
+    private final TalonFX collectorMotor = new TalonFX(collectorConstants.collectorMotorID);
 
     public Collector() {
         // TalonFXConfigurator configs = collectorMotor.getConfigurator();
@@ -48,5 +48,9 @@ public class Collector extends SubsystemBase {
 
     public Command stopCommand() {
         return this.runOnce(() -> stop());
+    }
+
+    public Command collect(BooleanSupplier untilWhen) {
+        return setCommand(() -> -0.7).until(untilWhen);
     }
 }

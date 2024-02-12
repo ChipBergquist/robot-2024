@@ -15,12 +15,18 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.cobraConstants;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 
 public class Cobra extends SubsystemBase {
@@ -76,6 +82,10 @@ public class Cobra extends SubsystemBase {
         }
     }
 
+    public BooleanSupplier laserCan2Activated() {
+        return () -> laserCan2.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance;
+    }
+
     // rotation motor basic setters
 
     public void setPivotSpeed(double speed) {
@@ -104,6 +114,10 @@ public class Cobra extends SubsystemBase {
         squisherMotor.stopMotor();
     }
 
+    public Boolean atSquisherSetpoint() {
+        return squisherMotor.getClosedLoopError().getValueAsDouble() < cobraConstants.squisherSpeedTolerance;
+    }
+
     // indexer motor basic setters
 
     public void setIndexer(double speed) {
@@ -128,7 +142,7 @@ public class Cobra extends SubsystemBase {
 
     public Command setPivotPosCommand(DoubleSupplier pos) {
         return this.run(() -> setPivotPos(pos.getAsDouble())).
-                until(() -> pivotMotor1.getClosedLoopError().getValueAsDouble() < cobraConstants.pivotAngleTolerance);
+                until(this::atSquisherSetpoint);
     }
 
     public Command stopPivotCommand() {
@@ -164,11 +178,42 @@ public class Cobra extends SubsystemBase {
         return this.runOnce(this::stopIndexer);
     }
 
-    public Command CobraCollect() {
+    public Command cobraCollect() {
         return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
                 andThen(Commands.parallel(
                         setSquisherCommand(() -> -0.5),
                         setIndexerCommand(() -> -0.5*cobraConstants.squisherGearRatio))).
-                until(() -> laserCan2.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance);
+                until(laserCan2Activated());
+    }
+
+    public Command ShootSpeaker(Supplier<Pose2d> robotPose) {
+        return setsquisherVelCommand(() -> cobraConstants.squisherShootSpeed).alongWith(
+                Commands.sequence(
+                        setPivotPosCommand(() -> {
+                            Translation2d speakerPose;
+                            if (DriverStation.getAlliance().isPresent()) {
+                                if (DriverStation.getAlliance().get().equals(DriverStation.Alliance.Blue)){
+                                    speakerPose = new Translation2d(0, Constants.Field.blueSpeakerY);
+                                }
+                                else{
+                                    speakerPose = new Translation2d(0, Constants.Field.redSpeakerY);
+                                }
+                            }
+                            else {
+                                speakerPose = new Translation2d(0, 0);
+                            }
+                            double distanceFromSpeaker = speakerPose.getDistance(robotPose.get().getTranslation());
+                            double height = Constants.Field.speakerZ - 0.48;
+
+                            return Math.tan(height/distanceFromSpeaker);
+                        }),
+                        Commands.waitUntil(this::atSquisherSetpoint),
+                        setIndexerCommand(() -> 0.5).deadlineWith(Commands.waitSeconds(0.5))));
+    }
+
+    public Command scoreAmp() {
+        return setPivotPosCommand(() -> cobraConstants.pivotAmpPos)
+                .andThen(setSquisherCommand(() -> 0.5))
+                .alongWith(setIndexerCommand(() -> 0.5));
     }
 }
