@@ -27,6 +27,8 @@ public class Climber extends SubsystemBase{
         configs.SoftwareLimitSwitch.ForwardSoftLimitEnable = false; // TODO: find upper limit for soft stop
         configs.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
         configs.Audio.BeepOnConfig = true;
+        configs.MotionMagic.MotionMagicAcceleration = climberConstants.climberMotorAcceleration;
+        configs.MotionMagic.MotionMagicCruiseVelocity = climberConstants.climberMotorVelocity;
         
         climberMotor1.getConfigurator().apply(configs);
         climberMotor2.getConfigurator().apply(configs);

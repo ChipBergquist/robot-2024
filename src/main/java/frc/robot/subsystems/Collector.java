@@ -1,10 +1,9 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.CANSparkBase;
+import com.revrobotics.CANSparkLowLevel;
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.collectorConstants;
@@ -13,17 +12,16 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 public class Collector extends SubsystemBase {
-    private final TalonFX collectorMotor = new TalonFX(collectorConstants.collectorMotorID);
+
+    private final CANSparkMax collectorMotor = new CANSparkMax(collectorConstants.collectorMotorID, CANSparkLowLevel.MotorType.kBrushless);
 
     public Collector() {
-        // TalonFXConfigurator configs = collectorMotor.getConfigurator();
-        TalonFXConfiguration configs = new TalonFXConfiguration();
-        configs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        configs.CurrentLimits.SupplyCurrentLimit = collectorConstants.collectorMotorCurrentLimit;
-        configs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        configs.Audio.BeepOnConfig = true;
-        
-        collectorMotor.getConfigurator().apply(configs);
+
+        collectorMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
+        collectorMotor.setSmartCurrentLimit(collectorConstants.collectorMotorCurrentLimit);
+        collectorMotor.setInverted(false);
+
+        collectorMotor.getPIDController().setP(collectorConstants.collectorMotorP);
     }
 
     public void set(double speed) {
@@ -31,7 +29,7 @@ public class Collector extends SubsystemBase {
     }
 
     public void setVel(double speed) {
-        collectorMotor.setControl(new VelocityVoltage(speed));
+        collectorMotor.getPIDController().setReference(speed, CANSparkBase.ControlType.kVelocity);
     }
 
     public void stop() {
@@ -47,7 +45,7 @@ public class Collector extends SubsystemBase {
     }
 
     public Command stopCommand() {
-        return this.runOnce(() -> stop());
+        return this.runOnce(this::stop);
     }
 
     public Command collect(BooleanSupplier untilWhen) {

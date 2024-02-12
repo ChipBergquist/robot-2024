@@ -53,7 +53,8 @@ public final class Constants {
   public static class collectorConstants {
     public static final int collectorMotorID = 9;
 
-    public static final double collectorMotorCurrentLimit = 40;
+    public static final int collectorMotorCurrentLimit = 40;
+    public static final double collectorMotorP = 0.5;
   }
 
   public static class climberConstants {
@@ -64,6 +65,9 @@ public final class Constants {
     public static final double upperSoftLimit = 100;
 
     public static final double climberMotorCurrentLimit = 50;
+
+    public static final double climberMotorAcceleration = 2;
+    public static final double climberMotorVelocity = 0.5;
   }
 
   public static class cobraConstants {
@@ -76,16 +80,22 @@ public final class Constants {
     public static final int laserCan2ID = 17;
     public static final int pivotEncoderID = 18;
 
-    public static final double rotationMotorCurrentLimit = 50;
+    public static final double pivotMotorCurrentLimit = 50;
     public static final double squisherMotorCurrentLimit = 40;
     public static final int indexerMotorCurrentLimit = 20;
 
-    public static final double lowerRotationSoftLimit = 0;
-    public static final double upperRotationSoftLimit = 100;
+    public static final double lowerPivotSoftLimit = 0;
+    public static final double upperPivotSoftLimit = 100;
+    public static final double pivotMotorAcceleration = 10;
+    public static final double pivotMotorVelocity = 50;
 
     public static final double pivotCollectAngle = 15;
+
     public static final double pivotGearRatio = 60;
     public static final double squisherGearRatio = 12;
+
+    public static final double squisherMotorAcceleration = 2;
+    public static final double squisherMotorVelocity = 0.5;
     public static final double pivotAngleTolerance = 0.1;
 
     public static final double squisherSpeedTolerance = 0.5;

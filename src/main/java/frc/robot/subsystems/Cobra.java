@@ -48,19 +48,23 @@ public class Cobra extends SubsystemBase {
 
         pivotConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         pivotConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitThreshold = cobraConstants.upperRotationSoftLimit;
-        pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitThreshold = cobraConstants.lowerRotationSoftLimit;
+        pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitThreshold = cobraConstants.upperPivotSoftLimit;
+        pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitThreshold = cobraConstants.lowerPivotSoftLimit;
         pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        pivotConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.rotationMotorCurrentLimit;
+        pivotConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.pivotMotorCurrentLimit;
         pivotConfigs.Audio.BeepOnConfig = true;
         pivotConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         pivotConfigs.Feedback.FeedbackRemoteSensorID = cobraConstants.pivotEncoderID;
+        pivotConfigs.MotionMagic.MotionMagicAcceleration = cobraConstants.pivotMotorAcceleration;
+        pivotConfigs.MotionMagic.MotionMagicCruiseVelocity = cobraConstants.pivotMotorVelocity;
 
         squisherConfigs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         squisherConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         squisherConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.squisherMotorCurrentLimit;
         squisherConfigs.Audio.BeepOnConfig = true;
+        squisherConfigs.MotionMagic.MotionMagicAcceleration = cobraConstants.squisherMotorAcceleration;
+        squisherConfigs.MotionMagic.MotionMagicCruiseVelocity = cobraConstants.squisherMotorVelocity;
 
         pivotMotor1.getConfigurator().apply(pivotConfigs);
         pivotMotor2.getConfigurator().apply(pivotConfigs);
