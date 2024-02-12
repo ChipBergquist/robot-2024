@@ -40,7 +40,6 @@ public class Drive extends SubsystemBase {
     Camera frontTagCam;
     Camera backTagCam;
 
-    private Boolean collected = false;
 
     public Drive(Camera gamePieceCam, Camera frontTagCam, Camera backTagCam) {
         this.gamePieceCam = gamePieceCam;
@@ -141,8 +140,8 @@ public class Drive extends SubsystemBase {
     drive.resetOdometry(initialHolonomicPose);
   }
 
-  public Command driveToNote() {
-      return this.runOnce(() -> collected = false).andThen(this.run(() -> {
+  public Command driveToNote(BooleanSupplier collected) {
+      return this.run(() -> {
           PhotonTrackedTarget target = gamePieceCam.getBestTarget();
           double angle = 0;
           if (target != null) {
@@ -151,11 +150,7 @@ public class Drive extends SubsystemBase {
                       Math.min(angle*-driveConstants.autoCollectTurnP, driveConstants.autoCollectMaxTurnVel),
                       false);
           }
-          else {
-              drive(new Translation2d(0, 0), 0, false);
-              collected = true;
-          }
-      })).until(() -> collected);
+      }).until(collected).finallyDo(() -> drive(new Translation2d(0, 0), 0, false));
   }
 
     public Command driveToPose(Pose2d pose) {

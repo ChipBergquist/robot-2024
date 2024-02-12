@@ -15,6 +15,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -41,6 +42,10 @@ public class Cobra extends SubsystemBase {
 
     private final LaserCan laserCan1 = new LaserCan(cobraConstants.laserCan1ID);
     private final LaserCan laserCan2 = new LaserCan(cobraConstants.laserCan2ID);
+
+    public Boolean useCurrentControl = false;
+
+    private final LinearFilter indexerCurrent = LinearFilter.movingAverage(20);
 
     public Cobra() {
         TalonFXConfiguration pivotConfigs = new TalonFXConfiguration();
@@ -82,12 +87,35 @@ public class Cobra extends SubsystemBase {
             laserCan1.setRangingMode(LaserCan.RangingMode.SHORT);
             laserCan2.setRangingMode(LaserCan.RangingMode.SHORT);
         } catch (ConfigurationFailedException e) {
-            System.out.println("setting laser can ranging mode failed");
+             DriverStation.reportError("one or both laser can devices have failed to configure", false);
+             useCurrentControl = true;
         }
+        if (laserCan1.getMeasurement().distance_mm < 0.1 || laserCan2.getMeasurement().distance_mm < 0.1) {
+            useCurrentControl = true;
+            DriverStation.reportError("one or both laser can devices have failed to give a correct measurement", false);
+        }
+    }
+
+    @Override
+    public void periodic() {
+        indexerCurrent.calculate(indexerMotor.getOutputCurrent());
     }
 
     public BooleanSupplier laserCan2Activated() {
         return () -> laserCan2.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance;
+    }
+
+    public BooleanSupplier laserCan1Activated() {
+        return () -> laserCan1.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance;
+    }
+
+    public BooleanSupplier noteInPosition() {
+        return () ->    (laserCan2.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance) &&
+                        !(laserCan1.getMeasurement().distance_mm < cobraConstants.laserCanDetectionTolerance);
+    }
+
+    public BooleanSupplier isIndexerCurrentHigh() {
+        return () -> indexerCurrent.calculate(indexerMotor.getOutputCurrent()) > 20;
     }
 
     // rotation motor basic setters
@@ -183,17 +211,28 @@ public class Cobra extends SubsystemBase {
     }
 
     public Command cobraCollect() {
+        if (useCurrentControl) {
+            return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle)
+                    .andThen(Commands.parallel(
+                            setSquisherCommand(() -> -0.5),
+                            setIndexerCommand(() -> 0.3 * cobraConstants.indexerGearRatio)))
+                    .until(isIndexerCurrentHigh())
+                    .andThen(Commands.parallel(
+                            setSquisherCommand(() -> -0.5),
+                            setIndexerCommand(() -> -0.5 * cobraConstants.indexerGearRatio)))
+                        .raceWith(Commands.waitSeconds(0.5));// wait half a second more to make sure the note is fully in the cobra
+        }
         return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
                 andThen(Commands.parallel(
                         setSquisherCommand(() -> -0.5),
-                        setIndexerCommand(() -> -0.5*cobraConstants.squisherGearRatio))).
-                until(laserCan2Activated());
+                        setIndexerCommand(() -> -0.5 * cobraConstants.indexerGearRatio)))
+                .until(noteInPosition());
     }
 
     public Command ShootSpeaker(Supplier<Pose2d> robotPose) {
         return setsquisherVelCommand(() -> cobraConstants.squisherShootSpeed).alongWith(
                 Commands.sequence(
-                        setPivotPosCommand(() -> {
+                        setPivotPosCommand(() -> { // get the angle for the pivot
                             Translation2d speakerPose;
                             if (DriverStation.getAlliance().isPresent()) {
                                 if (DriverStation.getAlliance().get().equals(DriverStation.Alliance.Blue)){

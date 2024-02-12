@@ -66,9 +66,18 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    driverController.leftBumper().whileTrue(
-            cobra.cobraCollect().
-            alongWith(collector.collect(cobra.laserCan2Activated())));
+    if (cobra.useCurrentControl) {
+      driverController.leftBumper().whileTrue(Commands.parallel(
+              drive.driveToNote(cobra.isIndexerCurrentHigh()),
+              cobra.cobraCollect(),
+              collector.collect(cobra.isIndexerCurrentHigh())));
+    }
+    else {
+      driverController.leftBumper().whileTrue(Commands.parallel(
+              drive.driveToNote(cobra.laserCan1Activated()),
+              cobra.cobraCollect(),
+              collector.collect(cobra.laserCan2Activated())));
+    }
 
     driverController.rightBumper().whileTrue(shootingInSpeaker ?
                     Commands.parallel(
