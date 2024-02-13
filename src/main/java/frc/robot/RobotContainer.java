@@ -12,10 +12,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.Cobra;
-import frc.robot.subsystems.Collector;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.*;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -33,6 +30,7 @@ public class RobotContainer {
   public final Cobra cobra = new Cobra();
   public final Collector collector = new Collector();
   public final Climber climber = new Climber();
+  public final LEDs leds = new LEDs();
 
   private Boolean shootingInSpeaker = false;
 
@@ -67,16 +65,21 @@ public class RobotContainer {
    */
   private void configureBindings() {
     if (cobra.useCurrentControl) {
-      driverController.leftBumper().whileTrue(Commands.parallel(
-              drive.driveToNote(cobra.isIndexerCurrentHigh()),
-              cobra.cobraCollect(),
-              collector.collect(cobra.isIndexerCurrentHigh())));
+      driverController.leftBumper().whileTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.collecting)).
+              andThen(Commands.parallel(
+                drive.driveToNote(cobra.isIndexerCurrentHigh()),
+                cobra.cobraCollect(),
+                collector.collect(cobra.isIndexerCurrentHigh()))).
+              andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
     }
     else {
-      driverController.leftBumper().whileTrue(Commands.parallel(
+      driverController.leftBumper().whileTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.collecting)).
+              andThen(
+              Commands.parallel(
               drive.driveToNote(cobra.laserCan1Activated()),
               cobra.cobraCollect(),
-              collector.collect(cobra.laserCan2Activated())));
+              collector.collect(cobra.laserCan2Activated()))).
+              andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
     }
 
     driverController.rightBumper().whileTrue(shootingInSpeaker ?

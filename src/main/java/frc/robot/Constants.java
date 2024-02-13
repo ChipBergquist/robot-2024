@@ -115,4 +115,39 @@ public final class Constants {
       public static final double redAmpX = 0;
       public static final double AmpY = 0;
   }
+
+  public final class LEDConstants {
+      public static final int port = 0;
+      public static final int length = 50;
+  }
+
+    public enum LEDStates {
+        collecting() {
+            public final int r = 150;
+            public final int g = 0;
+            public final int b = 0;
+
+            public final Boolean animated = true;
+            public final String animationType = "flash";
+            public double time = 2;
+        },
+        nothing() {
+            public final Boolean animated = true;
+            public final String animationType = "rainbow";
+        },
+
+        done() {
+            public final int r = 51;
+            public final int g = 204;
+            public final int b = 51;
+            public final Boolean animated = true;
+            public final String animationType = "timed Color";
+        };
+        public final int r = 0;
+        public final int g = 0;
+        public final int b = 0;
+        public final Boolean animated = false;
+        public final String animationType = "flash";
+        public final double time = 0;
+    }
 }
