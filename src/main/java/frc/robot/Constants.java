@@ -21,7 +21,7 @@ import swervelib.math.Matter;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
-    public static final int kCoDriverControllerPort = 0;
+    public static final int kCoDriverControllerPort = 1;
   }
 
   public static class driveConstants {
@@ -76,8 +76,8 @@ public final class Constants {
     public static final int squisherMotorID = 14;
     public static final int indexerMotorID = 15;
 
-    public static final int laserCan1ID = 16;
-    public static final int laserCan2ID = 17;
+    public static final int laserCan1ID = 17;
+    public static final int laserCan2ID = 16;
     public static final int pivotEncoderID = 18;
 
     public static final double pivotMotorCurrentLimit = 50;
@@ -89,19 +89,19 @@ public final class Constants {
     public static final double pivotMotorAcceleration = 10;
     public static final double pivotMotorVelocity = 50;
 
-    public static final double pivotCollectAngle = 15;
+    public static final double pivotGearRatio = 61.5385;
+    public static final double indexerGearRatio = 12 * 1.125;
 
-    public static final double pivotGearRatio = 60;
-    public static final double indexerGearRatio = 12;
+    public static final double pivotCollectAngle = 1.015;
 
     public static final double squisherMotorAcceleration = 2;
     public static final double squisherMotorVelocity = 0.5;
-    public static final double pivotAngleTolerance = 0.1;
+    public static final double pivotAngleTolerance = 0.01;
 
     public static final double squisherSpeedTolerance = 0.5;
 
-    public static final double laserCanDetectionTolerance = 5;
-    public static final double squisherShootSpeed = 100;
+    public static final double laserCanDetectionTolerance = 100;
+    public static final double squisherShootSpeed = 1000;
     public static final double pivotAmpPos = 90;
   }
 

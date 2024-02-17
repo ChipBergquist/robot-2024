@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Camera;
@@ -66,6 +67,12 @@ public class Drive extends SubsystemBase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        drive.setHeadingCorrection(false);
+        drive.setCosineCompensator(false);
+
+        defineAutoBuilder();
+        SmartDashboard.putNumber("number", drive.getSwerveController().config.maxAngularVelocity);
     }
 
     @Override
@@ -112,7 +119,7 @@ public class Drive extends SubsystemBase {
         return this.run(() -> drive.drive(new Translation2d(
             -MathUtil.applyDeadband(Math.pow(vX.getAsDouble(),3), 0.04)*driveConstants.maxSpeed,
             -MathUtil.applyDeadband(Math.pow(vY.getAsDouble(), 3), 0.04)*driveConstants.maxSpeed),
-            -MathUtil.applyDeadband(Math.pow(rotation.getAsDouble(), 3), 0.09) * drive.getSwerveController().config.maxAngularVelocity,
+            -MathUtil.applyDeadband(Math.pow(rotation.getAsDouble(), 3), 0.09) * 157,
             FieldRelative.getAsBoolean(), false));
     }
 
@@ -207,15 +214,13 @@ public class Drive extends SubsystemBase {
                 new HolonomicPathFollowerConfig(
                         new PIDConstants(5.0, 0.0, 0.0),
                         // Translation PID constants
-                        new PIDConstants(drive.swerveController.config.headingPIDF.p,
-                                drive.swerveController.config.headingPIDF.i,
-                                drive.swerveController.config.headingPIDF.d),
+                        new PIDConstants(0, 0, 0), // path planner isn't allowed to control the rotation
                         driveConstants.maxSpeed,
                         drive.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
                         new ReplanningConfig(true, true)
                 ),
                 () -> {var alliance = DriverStation.getAlliance();
-                    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;},
+                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();},
                 this);
 	}
 
@@ -231,4 +236,16 @@ public class Drive extends SubsystemBase {
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
 	}
+
+    public Command loadChoreoTrajectory(String pathName, Boolean setOdomToStart) {
+        PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory(pathName);
+
+        if (setOdomToStart)
+        {
+            resetOdometry(new Pose2d(path.getPoint(0).position, getYaw()));
+        }
+
+        // Create a path following command using AutoBuilder. This will also trigger event markers.
+        return AutoBuilder.followPath(path);
+    }
 }

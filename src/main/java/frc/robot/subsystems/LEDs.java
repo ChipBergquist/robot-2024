@@ -16,7 +16,7 @@ public class LEDs extends SubsystemBase {
 
     private double lastAnimUpdate = 0;
 
-    private Constants.LEDStates state;
+    private Constants.LEDStates state = Constants.LEDStates.nothing;
     private Boolean lightsOn = true;
     private int rainbowH = 0;
     private final int rainbowS = 150;

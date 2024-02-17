@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
@@ -19,7 +18,7 @@ public class Collector extends SubsystemBase {
 
         collectorMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
         collectorMotor.setSmartCurrentLimit(collectorConstants.collectorMotorCurrentLimit);
-        collectorMotor.setInverted(false);
+        collectorMotor.setInverted(true);
 
         collectorMotor.getPIDController().setP(collectorConstants.collectorMotorP);
     }
@@ -49,6 +48,6 @@ public class Collector extends SubsystemBase {
     }
 
     public Command collect(BooleanSupplier untilWhen) {
-        return setCommand(() -> -0.7).until(untilWhen);
+        return setCommand(() -> -0.5).until(untilWhen);
     }
 }
