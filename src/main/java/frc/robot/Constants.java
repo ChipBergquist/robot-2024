@@ -85,14 +85,17 @@ public final class Constants {
     public static final int indexerMotorCurrentLimit = 20;
 
     public static final double lowerPivotSoftLimit = 0;
-    public static final double upperPivotSoftLimit = 100;
-    public static final double pivotMotorAcceleration = 10;
+    public static final double upperPivotSoftLimit = 1.003;
+    public static final double pivotMotorAcceleration = 0.408;
     public static final double pivotMotorVelocity = 50;
 
     public static final double pivotGearRatio = 61.5385;
     public static final double indexerGearRatio = 12 * 1.125;
 
-    public static final double pivotCollectAngle = 1.015;
+    public static final double pivotCollectAngle = 0.427;
+    public static final double pivotFrontSubwooferAngle = 0.76;
+    public static final double pivotBackSubwooferAngle = 0.92;
+    public static final double pivotAmpAngle = 0.97;
 
     public static final double squisherMotorAcceleration = 2;
     public static final double squisherMotorVelocity = 0.5;
