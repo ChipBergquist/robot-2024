@@ -131,24 +131,15 @@ public class RobotContainer {
             cobra.cobraCollect(collector.collect(cobra::laserCan2Activated)));
 
     driverController.rightBumper().onTrue(Commands.sequence(
-                    cobra.setPivotPosCommand(() -> 1.575),
-                    cobra.setSquisherVelCommand(() -> 100),
-                    Commands.waitSeconds(0.5),
+                    cobra.setPivotPosCommand(() -> 1.484),
+                    cobra.setSquisherVelCommand(() -> 10),
                     cobra.setIndexerCommand(() -> 0.5),
                     Commands.waitSeconds(0.5),
                     cobra.setSquisherAndIndexerCommand(() -> 0)));
 
-    driverController.b().onTrue(Commands.sequence(
-            cobra.setPivotPosCommand(() -> 1.35),
-            cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
-            Commands.waitSeconds(0.5),
-            cobra.setIndexerCommand(() -> 0.5),
-            Commands.waitSeconds(0.5),
-            cobra.setSquisherAndIndexerCommand(() -> 0)));
-
     driverController.a().onTrue(Commands.sequence(
             cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
-            cobra.setPivotPosCommand(() -> 1.365),
+            cobra.setPivotPosCommand(() -> 1.279),
 //            Commands.waitSeconds(0.6),
             cobra.setIndexerCommand(() -> 0.5),
             Commands.waitSeconds(0.5),

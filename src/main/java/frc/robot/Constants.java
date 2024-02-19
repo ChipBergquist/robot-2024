@@ -92,11 +92,11 @@ public final class Constants {
     public static final double pivotGearRatio = 61.5385;
     public static final double indexerGearRatio = 12 * 1.125;
 
-    public static final double pivotCollectAngle = 1.015;
+    public static final double pivotCollectAngle = 0.93;
 
     public static final double squisherMotorAcceleration = 2;
     public static final double squisherMotorVelocity = 0.5;
-    public static final double pivotAngleTolerance = 0.01;
+    public static final double pivotAngleTolerance = 0.006;
 
     public static final double squisherSpeedTolerance = 0.5;
 

@@ -129,8 +129,8 @@ public class Cobra extends SubsystemBase {
         SmartDashboard.putBoolean("laser can 1 activated", laserCan1Activated());
         SmartDashboard.putBoolean("laser can 2 activated", laserCan2Activated());
 
-        SmartDashboard.putNumber("laser can 1 distance", laserCan1.getMeasurement().distance_mm);
-        SmartDashboard.putNumber("laser can 2 distance", laserCan2.getMeasurement().distance_mm);
+//        SmartDashboard.putNumber("laser can 1 distance", laserCan1.getMeasurement().distance_mm);
+//        SmartDashboard.putNumber("laser can 2 distance", laserCan2.getMeasurement().distance_mm);
     }
 
     public Boolean laserCan2Activated() {
@@ -226,7 +226,7 @@ public class Cobra extends SubsystemBase {
 
     public Command setPivotPosCommand(DoubleSupplier pos) {
         return this.runOnce(() -> setPivotPos(pos.getAsDouble())).
-                andThen(Commands.waitSeconds(0.2)).
+                andThen(Commands.waitSeconds(0.25)).
                 andThen(Commands.waitUntil(this::atPivotPoseSetpoint));
     }
 
@@ -276,6 +276,7 @@ public class Cobra extends SubsystemBase {
 //                        .raceWith(Commands.waitSeconds(0.5));// wait half a second more to make sure the note is fully in the cobra
 //        }
         return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
+                andThen(Commands.waitSeconds(1)).
                 andThen(setSquisherAndIndexerCommand(() -> -0.3)
                 .alongWith(intakeCollect))
                 .until(this::laserCan2Activated);
