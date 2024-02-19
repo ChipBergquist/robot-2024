@@ -5,7 +5,6 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -42,8 +41,6 @@ public class RobotContainer {
   public final CommandXboxController coDriverController =
       new CommandXboxController(OperatorConstants.kCoDriverControllerPort);
 
-
-
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
@@ -51,7 +48,7 @@ public class RobotContainer {
         driverController::getLeftY,
         driverController::getLeftX,
         driverController::getRightX,
-        () -> true));
+        () -> false));
 
     climber.setDefaultCommand(climber.setCommand(coDriverController::getLeftY));
 
@@ -76,17 +73,6 @@ public class RobotContainer {
 //    autoChooser.addOption("four piece", fourPiece.alongWith(Commands.repeatingSequence(
 //            collectCommand,
 //            cobra.ShootSpeaker(drive::getPose))));
-//      Command leavePlace = drive.createTrajectory("leave place", true);
-
-      autoChooser.addOption("simple stupid", Commands.sequence(
-              cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
-              cobra.setPivotPosCommand(() -> 1.365),
-//            Commands.waitSeconds(0.6),
-              cobra.setIndexerCommand(() -> 0.5),
-              Commands.waitSeconds(0.5),
-              cobra.setSquisherAndIndexerCommand(() -> 0)).andThen());
-
-      SmartDashboard.putData(autoChooser);
   }
 
   /**
@@ -140,38 +126,33 @@ public class RobotContainer {
 //              cobra.cobraCollect(),
 //              collector.collect(cobra::laserCan2Activated))).
 //              andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
-    // collect
+
     driverController.leftBumper().onTrue(
             cobra.cobraCollect(collector.collect(cobra::laserCan2Activated)));
 
-    // amp
     driverController.rightBumper().onTrue(Commands.sequence(
-                    cobra.setPivotPosCommand(() -> Constants.cobraConstants.pivotAmpAngle),
-                    cobra.setSquisherVelCommand(() -> 10),
+                    cobra.setPivotPosCommand(() -> 1.575),
+                    cobra.setSquisherVelCommand(() -> 100),
+                    Commands.waitSeconds(0.5),
                     cobra.setIndexerCommand(() -> 0.5),
                     Commands.waitSeconds(0.5),
                     cobra.setSquisherAndIndexerCommand(() -> 0)));
 
-    // speaker front
-    driverController.a().onTrue(Commands.sequence(
+    driverController.b().onTrue(Commands.sequence(
+            cobra.setPivotPosCommand(() -> 1.35),
             cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
-            cobra.setPivotPosCommand(() -> Constants.cobraConstants.pivotFrontSubwooferAngle),
+            Commands.waitSeconds(0.5),
             cobra.setIndexerCommand(() -> 0.5),
             Commands.waitSeconds(0.5),
             cobra.setSquisherAndIndexerCommand(() -> 0)));
 
-    // speaker back
-    driverController.b().onTrue(Commands.sequence(
-              cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
-              cobra.setPivotPosCommand(() -> Constants.cobraConstants.pivotBackSubwooferAngle),
-              cobra.setIndexerVelCommand(() -> 0.5),
-              Commands.waitSeconds(0.5),
-              cobra.setSquisherAndIndexerCommand(() -> 0)));
-
-    coDriverController.a().onTrue(cobra.setPivotPosCommand(() -> Constants.cobraConstants.pivotCollectAngle));
-    coDriverController.b().onTrue(cobra.setPivotPosCommand(() -> 0.5));
-    coDriverController.x().onTrue(cobra.setPivotPosCommand(() -> 0.6));
-    coDriverController.y().onTrue(cobra.setPivotPosCommand(() -> 0.7));
+    driverController.a().onTrue(Commands.sequence(
+            cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
+            cobra.setPivotPosCommand(() -> 1.365),
+//            Commands.waitSeconds(0.6),
+            cobra.setIndexerCommand(() -> 0.5),
+            Commands.waitSeconds(0.5),
+            cobra.setSquisherAndIndexerCommand(() -> 0)));
 
     coDriverController.x().onTrue(Commands.runOnce(() -> shootingInSpeaker = false));
     coDriverController.y().onTrue(Commands.runOnce(() -> shootingInSpeaker = true));
@@ -184,6 +165,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return autoChooser.getSelected();
+    return Commands.none();
   }
 }

@@ -4,7 +4,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.RobotBase;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -21,19 +20,10 @@ public class Camera {
     public Camera(String name) {
         camera = new PhotonCamera(name);
         poseEstimator = null;
-
-        if (RobotBase.isSimulation()) {
-            PhotonCamera.setVersionCheckEnabled(false);
-        }
     }
 
     public Camera(String name, Transform3d robot2Cam) {
         camera = new PhotonCamera(name);
-
-        if (RobotBase.isSimulation()) {
-            PhotonCamera.setVersionCheckEnabled(false);
-        }
-
         if (camera.getPipelineIndex() == 0) {
             // Attempt to load the AprilTagFieldLayout that will tell us where
             // the tags are on the field.

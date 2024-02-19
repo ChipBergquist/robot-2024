@@ -68,8 +68,6 @@ public class Drive extends SubsystemBase {
             throw new RuntimeException(e);
         }
 
-        drive.pushOffsetsToControllers();
-
         drive.setHeadingCorrection(false);
         drive.setCosineCompensator(false);
 

@@ -17,14 +17,11 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.cobraConstants;
 
@@ -52,14 +49,6 @@ public class Cobra extends SubsystemBase {
 
     private final LinearFilter indexerCurrent = LinearFilter.movingAverage(20);
 
-    private double indexerSetpoint = 0;
-    private double pivotSetpoint = 0;
-
-    SysIdRoutine routine = new SysIdRoutine(
-            new SysIdRoutine.Config(),
-            new SysIdRoutine.Mechanism(this::setPivotVoltage, null, this)
-    );
-
     public Cobra() {
         TalonFXConfiguration pivotConfigs = new TalonFXConfiguration();
         TalonFXConfiguration squisherConfigs = new TalonFXConfiguration();
@@ -68,8 +57,8 @@ public class Cobra extends SubsystemBase {
         pivotConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitThreshold = cobraConstants.upperPivotSoftLimit;
         pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitThreshold = cobraConstants.lowerPivotSoftLimit;
-        pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        pivotConfigs.SoftwareLimitSwitch.ForwardSoftLimitEnable = false;
+        pivotConfigs.SoftwareLimitSwitch.ReverseSoftLimitEnable = false;
         pivotConfigs.CurrentLimits.SupplyCurrentLimit = cobraConstants.pivotMotorCurrentLimit;
         pivotConfigs.CurrentLimits.SupplyCurrentLimitEnable = true;
         pivotConfigs.Audio.BeepOnConfig = true;
@@ -80,11 +69,11 @@ public class Cobra extends SubsystemBase {
         pivotConfigs.MotionMagic.MotionMagicAcceleration = cobraConstants.pivotMotorAcceleration;
         pivotConfigs.MotionMagic.MotionMagicCruiseVelocity = cobraConstants.pivotMotorVelocity;
         pivotConfigs.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1;
-        pivotConfigs.Slot0.kP = 32; // 20
-        pivotConfigs.Slot0.kI = 10; // 2
-        pivotConfigs.Slot0.kD = 3;
-        pivotConfigs.Slot0.kG = 0.2;
-        pivotConfigs.Slot0.kV = 0;
+        pivotConfigs.Slot0.kP = 20; // 20
+        pivotConfigs.Slot0.kI = 2.8; // 2
+        pivotConfigs.Slot0.kD = 0.5;
+        pivotConfigs.Slot0.kG = 0.32;
+        pivotConfigs.Slot0.kS = 2.6;
         pivotConfigs.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
 
         squisherConfigs.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -103,15 +92,11 @@ public class Cobra extends SubsystemBase {
 
         CANcoderConfiguration pivotEncoderConfigs = new CANcoderConfiguration();
 
-        pivotEncoderConfigs.MagnetSensor.MagnetOffset = -0.169189453125;
+        pivotEncoderConfigs.MagnetSensor.MagnetOffset = 0.339;
         pivotEncoderConfigs.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         pivotEncoderConfigs.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
 
         pivotEncoder.getConfigurator().apply(pivotEncoderConfigs);
-
-
-//        SignalLogger.enableAutoLogging(true);
-
 
         indexerMotor.setIdleMode(IdleMode.kBrake);
         indexerMotor.setInverted(false);
@@ -139,18 +124,13 @@ public class Cobra extends SubsystemBase {
         SmartDashboard.putBoolean("at pivot setpoint", atPivotPoseSetpoint());
         SmartDashboard.putNumber("pivot pos", pivotMotor1.getPosition().getValueAsDouble());
 
-        SmartDashboard.putBoolean("at squisher setpoint", atSquisherSetpoint());
+
 
         SmartDashboard.putBoolean("laser can 1 activated", laserCan1Activated());
         SmartDashboard.putBoolean("laser can 2 activated", laserCan2Activated());
 
-//        SmartDashboard.putNumber("laser can 1 distance", laserCan1.getMeasurement().distance_mm);
-//        SmartDashboard.putNumber("laser can 2 distance", laserCan2.getMeasurement().distance_mm);
-    }
-
-    public void logger() {
-        var voltageThing = pivotMotor1.getSupplyVoltage();
-
+        SmartDashboard.putNumber("laser can 1 distance", laserCan1.getMeasurement().distance_mm);
+        SmartDashboard.putNumber("laser can 2 distance", laserCan2.getMeasurement().distance_mm);
     }
 
     public Boolean laserCan2Activated() {
@@ -188,12 +168,7 @@ public class Cobra extends SubsystemBase {
     }
 
     public void setPivotPos(double pos) {
-        pivotSetpoint = pos;
         pivotMotor1.setControl(new MotionMagicVoltage(pos));
-    }
-
-    public void setPivotVoltage(Measure<Voltage> volts) {
-        pivotMotor1.setVoltage(volts.baseUnitMagnitude());
     }
 
     public void stopPivot() {
@@ -201,9 +176,7 @@ public class Cobra extends SubsystemBase {
     }
 
     public Boolean atPivotPoseSetpoint() {
-        return Math.abs(
-                pivotSetpoint
-                - pivotMotor1.getPosition().getValueAsDouble()) < cobraConstants.pivotAngleTolerance;
+        return Math.abs(pivotMotor1.getClosedLoopError().getValueAsDouble()) < cobraConstants.pivotAngleTolerance;
     }
 
     // squisher motor basic setters
@@ -221,8 +194,7 @@ public class Cobra extends SubsystemBase {
     }
 
     public Boolean atSquisherSetpoint() {
-        return squisherMotor.getClosedLoopReference().getValueAsDouble()
-                - squisherMotor.getVelocity().getValueAsDouble() < cobraConstants.squisherSpeedTolerance;
+        return squisherMotor.getClosedLoopError().getValueAsDouble() < cobraConstants.squisherSpeedTolerance;
     }
 
     // indexer motor basic setters
@@ -232,7 +204,6 @@ public class Cobra extends SubsystemBase {
     }
 
     public void setIndexerVel(double vel) {
-        indexerSetpoint = vel;
         indexerController.setReference(vel, ControlType.kVelocity);
     }
 
@@ -240,18 +211,9 @@ public class Cobra extends SubsystemBase {
         indexerMotor.stopMotor();
     }
 
-    public Boolean atIndexerSetpoint() {
-        return indexerSetpoint - indexerMotor.getEncoder().getVelocity() < cobraConstants.squisherSpeedTolerance;
-    }
-
-    public void setSquisherAndIndexerVel(double speed) {
-        setSquisherVel(speed);
-        setIndexerVel(speed);
-    }
-
     public void setSquisherAndIndexer(double speed) {
-        setIndexer(speed);
-        setSquisher(speed);
+        squisherMotor.set(speed);
+        indexerMotor.set(speed);
     }
 
     // COMMANDS //
@@ -264,6 +226,7 @@ public class Cobra extends SubsystemBase {
 
     public Command setPivotPosCommand(DoubleSupplier pos) {
         return this.runOnce(() -> setPivotPos(pos.getAsDouble())).
+                andThen(Commands.waitSeconds(0.2)).
                 andThen(Commands.waitUntil(this::atPivotPoseSetpoint));
     }
 
@@ -278,7 +241,8 @@ public class Cobra extends SubsystemBase {
     }
 
     public Command setSquisherVelCommand(DoubleSupplier vel) {
-        return this.runOnce(() -> setSquisherVel(vel.getAsDouble()));
+        return this.run(() -> setSquisherVel(vel.getAsDouble())).
+                until(() -> squisherMotor.getClosedLoopError().getValueAsDouble() < cobraConstants.squisherSpeedTolerance);
     } 
 
     public Command stopSquisherCommand() {
@@ -292,20 +256,15 @@ public class Cobra extends SubsystemBase {
     }
 
     public Command setIndexerVelCommand(DoubleSupplier vel) {
-        return this.runOnce(() -> setIndexerVel(vel.getAsDouble())).until(this::atIndexerSetpoint);
+        return this.run(() -> setIndexerVel(vel.getAsDouble()));
     }
 
     public Command stopIndexerCommand() {
         return this.runOnce(this::stopIndexer);
     }
 
-    public Command setSquisherAndIndexerVelCommand(DoubleSupplier speed) {
-        return this.runOnce(() -> setSquisherAndIndexerVel(speed.getAsDouble())).
-                until(() -> atSquisherSetpoint() && atIndexerSetpoint());
-    }
-
     public Command setSquisherAndIndexerCommand(DoubleSupplier speed) {
-        return this.runOnce(() -> setSquisherAndIndexer(speed.getAsDouble()));
+        return this.run(() -> setSquisherAndIndexer(speed.getAsDouble()));
     }
 
     public Command cobraCollect(Command intakeCollect) {
@@ -319,8 +278,7 @@ public class Cobra extends SubsystemBase {
         return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
                 andThen(setSquisherAndIndexerCommand(() -> -0.3)
                 .alongWith(intakeCollect))
-                .andThen(Commands.waitUntil(this::laserCan2Activated))
-                .andThen(setSquisherAndIndexerCommand(() -> 0));
+                .until(this::laserCan2Activated);
     }
 
     public Command ShootSpeaker(Supplier<Pose2d> robotPose) {
