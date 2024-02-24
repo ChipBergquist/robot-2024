@@ -32,8 +32,16 @@ public final class Constants {
       public static final Matter CHASSIS = new Matter(new Translation3d(0, 0,
               Units.inchesToMeters(4)), ROBOT_MASS);
 
-      public static final Transform3d frontTagCamPose = new Transform3d(0, 0, 0, new Rotation3d(0, 0, 0));
-      public static final Transform3d backTagCamPose = new Transform3d(0, 0, 0, new Rotation3d(0, 0, 0));
+      public static final Transform3d frontTagCamPose = new Transform3d(
+              Units.inchesToMeters(0),
+              Units.inchesToMeters(0),
+              Units.inchesToMeters(0),
+              new Rotation3d(0, 45, 0));
+      public static final Transform3d backTagCamPose = new Transform3d(
+              Units.inchesToMeters(-7.5),
+              Units.inchesToMeters(-11),
+              Units.inchesToMeters(12.5),
+              new Rotation3d(0, Units.degreesToRadians(45), 0));
   
       // loop time to use
       public static final double maxSpeed = Units.feetToMeters(14.5);
@@ -46,8 +54,8 @@ public final class Constants {
       public static final double STEERING_ENCODER_RESOLUTION = 1;
 
       public static final double autoCollectForwardVel = 0.65;// TODO: Tune me on real robot
-      public static final double autoCollectTurnP = 0.041; // TODO: Tune me on real robot
-      public static final double autoCollectMaxTurnVel = 0.3; // TODO: Tune me on real robot
+      public static final double autoCollectTurnP = 4; // TODO: Tune me on real robot
+      public static final double autoCollectMaxTurnVel = 200; // TODO: Tune me on real robot
   }
 
   public static class collectorConstants {
@@ -111,43 +119,208 @@ public final class Constants {
       public static final double speakerWidth = 105;
       public static final double speakerX = 0.23;//16.412;
       public static final double speakerZ = 2.045; //height of opening
-      public static final double blueAmpX = 0;
-      public static final double redAmpX = 0;
-      public static final double AmpY = 0;
+
+      public static final double ampX = Units.inchesToMeters(72.5);
+      public static final double blueAmpY = Units.inchesToMeters(323.00);
+      public static final double redAmpY = 0;
   }
 
   public final class LEDConstants {
       public static final int port = 0;
-      public static final int length = 50;
+      public static final int length = 69;
   }
 
     public enum LEDStates {
         collecting() {
-            public final int r = 150;
-            public final int g = 0;
-            public final int b = 0;
+            @Override
+            public int getR() {
+                return 200;
+            }
+            @Override
+            public int getG() {
+                return 120;
+            }
 
-            public final Boolean animated = true;
-            public final String animationType = "flash";
-            public double time = 2;
+            @Override
+            public int getB() {
+                return 50;
+            }
+
+            @Override
+            public Boolean isAnimated() {
+                return true;
+            }
+
+            @Override
+            public String getAnimationType() {
+                return "flash";
+            }
+
+            @Override
+            public int getAnimationTime() {
+                return 1;
+            }
         },
+
+        speaker() {
+            @Override
+            public int getR() {
+                return 0;
+            }
+            @Override
+            public int getG() {
+                return 0;
+            }
+
+            @Override
+            public int getB() {
+                return 100;
+            }
+
+            @Override
+            public Boolean isAnimated() {
+                return false;
+            }
+
+            @Override
+            public String getAnimationType() {
+                return "none";
+            }
+        },
+
+        amp() {
+            @Override
+            public int getR() {
+                return 100;
+            }
+            @Override
+            public int getG() {
+                return 100;
+            }
+
+            @Override
+            public int getB() {
+                return 100;
+            }
+
+            @Override
+            public Boolean isAnimated() {
+                return false;
+            }
+
+            @Override
+            public String getAnimationType() {
+                return "none";
+            }
+        },
+
         nothing() {
-            public final Boolean animated = true;
-            public final String animationType = "rainbow";
+            @Override
+            public int getR() {
+                return 0;
+            }
+            @Override
+            public int getG() {
+                return 100;
+            }
+
+            @Override
+            public int getB() {
+                return 0;
+            }
+
+            @Override
+            public Boolean isAnimated() {
+                return false;
+            }
+
+            @Override
+            public String getAnimationType() {
+                return "none";
+            }
         },
 
-        done() {
-            public final int r = 51;
-            public final int g = 204;
-            public final int b = 51;
-            public final Boolean animated = true;
-            public final String animationType = "timed Color";
+        staticColor() {
+            @Override
+            public int getR() {
+                return 0;
+            }
+            @Override
+            public int getG() {
+                return 0;
+            }
+
+            @Override
+            public int getB() {
+                return 255;
+            }
+
+            @Override
+            public Boolean isAnimated() {
+                return false;
+            }
+
+            @Override
+            public String getAnimationType() {
+                return "none";
+            }
+
+            @Override
+            public int getAnimationTime() {
+                return 0;
+            }
+        },
+
+        off() {},
+
+        rainbow() {
+            @Override
+            public int getR() {
+                return 0;
+            }
+            @Override
+            public int getG() {
+                return 0;
+            }
+
+            @Override
+            public int getB() {
+                return 0;
+            }
+
+            @Override
+            public Boolean isAnimated() {
+                return true;
+            }
+
+            @Override
+            public String getAnimationType() {
+                return "rainbow";
+            }
         };
-        public final int r = 0;
-        public final int g = 0;
-        public final int b = 0;
-        public final Boolean animated = false;
-        public final String animationType = "flash";
-        public final double time = 0;
+
+        public int getR() {
+            return 0;
+        }
+
+        public int getG() {
+            return 0;
+        }
+
+        public int getB() {
+            return 0;
+        }
+
+        public Boolean isAnimated() {
+            return true;
+        }
+
+        public String getAnimationType() {
+            return "none";
+        }
+
+        public int getAnimationTime() {
+            return 0;
+        }
     }
 }

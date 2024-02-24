@@ -276,13 +276,13 @@ public class Cobra extends SubsystemBase {
 //                        .raceWith(Commands.waitSeconds(0.5));// wait half a second more to make sure the note is fully in the cobra
 //        }
         return setPivotPosCommand(() -> cobraConstants.pivotCollectAngle).
-                andThen(Commands.waitSeconds(1)).
+                andThen(Commands.waitSeconds(0.5)).
                 andThen(setSquisherAndIndexerCommand(() -> -0.3)
                 .alongWith(intakeCollect))
                 .until(this::laserCan2Activated);
     }
 
-    public Command ShootSpeaker(Supplier<Pose2d> robotPose) {
+    public Command shootSpeaker(Supplier<Pose2d> robotPose) {
         return Commands.sequence(
                         Commands.runOnce(() -> setSquisherVel(cobraConstants.squisherShootSpeed)),
                         setPivotPosCommand(() -> { // get the angle for the pivot
@@ -304,7 +304,7 @@ public class Cobra extends SubsystemBase {
                             return Math.tan(height/distanceFromSpeaker);
                         }),
                         Commands.waitUntil(this::atSquisherSetpoint),
-                        setIndexerCommand(() -> 0.5).deadlineWith(Commands.waitSeconds(0.5)));
+                        setIndexerCommand(() -> 0.5));
     }
 
     public Command scoreAmp() {

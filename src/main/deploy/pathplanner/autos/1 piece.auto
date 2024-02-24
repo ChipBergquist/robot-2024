@@ -2,25 +2,25 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.343662687325375,
-      "y": 3.5915671831343663
+      "x": 0.7450681568029806,
+      "y": 4.389693223830892
     },
-    "rotation": -5.527540151656203
+    "rotation": 120.65066795705285
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "start2note1"
+            "name": "shoot"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "note12speaker"
+            "pathName": "safe leave"
           }
         }
       ]

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -70,6 +71,7 @@ public class Drive extends SubsystemBase {
 
         drive.setHeadingCorrection(false);
         drive.setCosineCompensator(false);
+        drive.pushOffsetsToControllers();
 
         defineAutoBuilder();
         SmartDashboard.putNumber("number", drive.getSwerveController().config.maxAngularVelocity);
@@ -79,16 +81,18 @@ public class Drive extends SubsystemBase {
     public void periodic() {
         updatePose();
         drive.updateOdometry();
+        SmartDashboard.putNumber("drive pose/x", drive.getPose().getX());
+        SmartDashboard.putNumber("drive pose/y", drive.getPose().getY());
     }
 
     private void updatePose() {
-         Optional<EstimatedRobotPose> frontResult = frontTagCam.getPose(drive.getPose());
-         if (frontResult.isPresent()) {
-		 	EstimatedRobotPose camPose = frontResult.get();
-		 	drive.addVisionMeasurement(
-                 camPose.estimatedPose.toPose2d(),
-                 camPose.timestampSeconds);
-		 }
+//         Optional<EstimatedRobotPose> frontResult = frontTagCam.getPose(drive.getPose());
+//         if (frontResult.isPresent()) {
+//		 	EstimatedRobotPose camPose = frontResult.get();
+//		 	drive.addVisionMeasurement(
+//                 camPose.estimatedPose.toPose2d(),
+//                 camPose.timestampSeconds);
+//		 }
         
          Optional<EstimatedRobotPose> backResult = backTagCam.getPose(drive.getPose());
          if (backResult.isPresent()) {
@@ -157,13 +161,13 @@ public class Drive extends SubsystemBase {
                       Math.min(angle*-driveConstants.autoCollectTurnP, driveConstants.autoCollectMaxTurnVel),
                       false);
           }
-      }).until(collected).finallyDo(() -> drive(new Translation2d(0, 0), 0, false));
+      }).until(collected);
   }
 
     public Command driveToPose(Pose2d pose) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                drive.getMaximumVelocity(), 4.0,
+                0.5, 4.0,
                 drive.getMaximumAngularVelocity(), Units.degreesToRadians(720));
 
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
@@ -214,27 +218,27 @@ public class Drive extends SubsystemBase {
                 new HolonomicPathFollowerConfig(
                         new PIDConstants(5.0, 0.0, 0.0),
                         // Translation PID constants
-                        new PIDConstants(0, 0, 0), // path planner isn't allowed to control the rotation
-                        driveConstants.maxSpeed,
+                        new PIDConstants(drive.swerveController.config.headingPIDF.p,
+                                drive.swerveController.config.headingPIDF.i,
+                                drive.swerveController.config.headingPIDF.d),
+                        1,
                         drive.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
                         new ReplanningConfig(true, true)
                 ),
                 () -> {var alliance = DriverStation.getAlliance();
                     return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();},
                 this);
+
+
 	}
 
     public Command createTrajectory(String pathName, boolean setOdomToStart) {
-        // Load the path you want to follow using its name in the GUI
-        PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
-        if (setOdomToStart)
-        {
-            resetOdometry(new Pose2d(path.getPoint(0).position, getYaw()));
-        }
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
-        return AutoBuilder.followPath(path);
+//        if (setOdomToStart)
+//        {
+//            resetOdometry(new Pose2d(path.getPoint(0).position, getYaw()));
+//        }
+        return new PathPlannerAuto(pathName);
 	}
 
     public Command loadChoreoTrajectory(String pathName, Boolean setOdomToStart) {
