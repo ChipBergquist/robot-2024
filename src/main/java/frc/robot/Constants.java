@@ -101,6 +101,8 @@ public final class Constants {
     public static final double indexerGearRatio = 12 * 1.125;
 
     public static final double pivotCollectAngle = 0.93;
+    public static final double pivotAmpAngle = 1.484;
+    public static final double pivotSpeakerAngle = 1.279;
 
     public static final double squisherMotorAcceleration = 2;
     public static final double squisherMotorVelocity = 0.5;
@@ -109,7 +111,7 @@ public final class Constants {
     public static final double squisherSpeedTolerance = 0.5;
 
     public static final double laserCanDetectionTolerance = 100;
-    public static final double squisherShootSpeed = 1000;
+    public static final double squisherSpeakerShootSpeed = 1000;
     public static final double pivotAmpPos = 90;
   }
 

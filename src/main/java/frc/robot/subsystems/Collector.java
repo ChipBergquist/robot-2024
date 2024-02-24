@@ -39,6 +39,7 @@ public class Collector extends SubsystemBase {
         return this.run(() -> set(speed.getAsDouble()));
     }
 
+    // CMB - This is never used. Does that imply we do not use the PID Controler in this version of the robot?
     public Command setVelCommand(DoubleSupplier speed) {
         return this.run(() -> setVel(speed.getAsDouble()));
     }

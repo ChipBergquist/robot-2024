@@ -36,35 +36,64 @@ public class RobotContainer {
 
   public SendableChooser<Command> autoChooser = new SendableChooser<Command>();
 
-  private Boolean shootingInSpeaker = false;
-
   public final CommandXboxController driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
   public final CommandXboxController coDriverController =
       new CommandXboxController(OperatorConstants.kCoDriverControllerPort);
 
+  private Command scoreInAmp = Commands.sequence(
+    Commands.runOnce(() -> leds.setState(Constants.LEDStates.amp)),
+    cobra.setSquisherVelCommand(() -> 10),  // Make - squisherAmpShootSpeed
+    cobra.setPivotPosCommand(() -> Constants.cobraConstants.pivotAmpAngle),
+    cobra.setIndexerCommand(() -> 0.5), // CMB - Make Feed Out Speed. No Magic Numbers!
+
+    Commands.waitSeconds(0.5),
+    cobra.setSquisherAndIndexerCommand(() -> 0),  // CMB - Make Stop Speed. No Magic Numbers!
+    cobra.setPivotCommand(() -> Constants.cobraConstants.pivotCollectAngle),
+    Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))
+  );
+
+  private Command scoreInSpeaker = Commands.sequence(
+    Commands.runOnce(() -> leds.setState(Constants.LEDStates.speaker)),
+    cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherSpeakerShootSpeed),
+    cobra.setPivotPosCommand(() -> Constants.cobraConstants.pivotSpeakerAngle),
+    cobra.setIndexerCommand(() -> 0.5), // CMB - Make Feed Out Speed. No Magic Numbers!
+
+    Commands.waitSeconds(0.5),
+    cobra.setSquisherAndIndexerCommand(() -> 0), // CMB - Make Stop Speed. No Magic Numbers!
+    cobra.setPivotCommand(() -> Constants.cobraConstants.pivotCollectAngle),
+    Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))
+  );
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
+    // Driver Joysticks, Both - Swerve Drive.
     drive.setDefaultCommand(drive.driveWithJoysticks(
         driverController::getLeftY,
         driverController::getLeftX,
         driverController::getRightX,
         () -> false));
 
+    // Codriver Left Joystick  - Up and Down for Climber.
     climber.setDefaultCommand(climber.setCommand(coDriverController::getLeftY));
 
+    // Default for Cobra's Squisher and Indexer are "stopped".
+    // CMB - What and where is the defaut command for the Cobra's Pivot Arm?
     cobra.setDefaultCommand(cobra.setSquisherAndIndexerCommand(() -> 0));
     collector.setDefaultCommand(collector.setCommand(() -> 0.1));
 
-//    leds.setDefaultCommand(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing), leds));
+    // leds.setDefaultCommand(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing), leds));
         
+    // CMB - Why do we put some default command here and not all?
+
     // Configure the trigger bindings
     configureBindings();
     configureAutonomous();
   }
 
+// CMB - Iam completely ignoring Autonomous for now and focusing on Automation.
   private void configureAutonomous() {
 
     NamedCommands.registerCommand("shoot", Commands.sequence(
@@ -95,81 +124,68 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    //    driverController.rightBumper().whileTrue(shootingInSpeaker ?
+    //                    Commands.parallel(
+    //                            drive.run(() -> {
+    //                                    ChassisSpeeds speeds = drive.getTargetSpeeds(
+    //                                            driverController.getLeftX(),
+    //                                            driverController.getLeftY(),
+    //                                            drive.speakerShootAngle());
+    //                                    drive.drive(
+    //                                            new Translation2d(
+    //                                                    speeds.vxMetersPerSecond,
+    //                                                    speeds.vyMetersPerSecond),
+    //                                            speeds.omegaRadiansPerSecond,
+    //                                            true);
+    //                            }),
+    //                            cobra.ShootSpeaker(drive::getPose)) :
+    //                            drive.driveToPose(new Pose2d()).andThen(cobra.scoreAmp()));
 
-//    driverController.rightBumper().whileTrue(shootingInSpeaker ?
-//                    Commands.parallel(
-//                            drive.run(() -> {
-//                                    ChassisSpeeds speeds = drive.getTargetSpeeds(
-//                                            driverController.getLeftX(),
-//                                            driverController.getLeftY(),
-//                                            drive.speakerShootAngle());
-//                                    drive.drive(
-//                                            new Translation2d(
-//                                                    speeds.vxMetersPerSecond,
-//                                                    speeds.vyMetersPerSecond),
-//                                            speeds.omegaRadiansPerSecond,
-//                                            true);
-//                            }),
-//                            cobra.ShootSpeaker(drive::getPose)) :
-//                            drive.driveToPose(new Pose2d()).andThen(cobra.scoreAmp()));
+    //    driverController.leftBumper().whileTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.collecting)).
+    //              andThen(
+    //              Commands.parallel(
+    //              cobra.cobraCollect(),
+    //              collector.collect(cobra::laserCan2Activated))).
+    //              andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
 
-//    driverController.leftBumper().whileTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.collecting)).
-//              andThen(
-//              Commands.parallel(
-//              cobra.cobraCollect(),
-//              collector.collect(cobra::laserCan2Activated))).
-//              andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
+    // Driver Left Bumper - Collect Note, Automated Driving.
+    driverController.leftBumper().whileTrue(Commands.runOnce(() -> 
+          leds.setState(Constants.LEDStates.collecting)).
+          andThen(
+                  Commands.parallel(
+                          cobra.cobraCollect(collector.collect(cobra::laserCan2Activated)),
+                          drive.driveToNote(cobra::laserCan2Activated))).
+          andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
 
-    // collect
-    driverController.leftBumper().whileTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.collecting)).
-            andThen(
-                    Commands.parallel(
-                            cobra.cobraCollect(collector.collect(cobra::laserCan2Activated)),
-                            drive.driveToNote(cobra::laserCan2Activated))).
-            andThen(Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing))));
+    // Driver Right Bumper - Automated Amp Scoring, Manual Driving.
+    driverController.rightBumper().onTrue(
+      scoreInAmp
+    );
 
-    driverController.x().onTrue(cobra.cobraCollect(collector.collect(cobra::laserCan2Activated)));
+    // Driver X - Collect Note, Manual Driving.
+    driverController.x().onTrue(
+      cobra.cobraCollect(
+        collector.collect(cobra::laserCan2Activated)
+        )
+    );
 
-    // amp
-    Command ampCommands = Commands.sequence(
-            Commands.runOnce(() -> leds.setState(Constants.LEDStates.amp)),
-            cobra.setPivotPosCommand(() -> 1.484),
-            cobra.setSquisherVelCommand(() -> 10),
-            cobra.setIndexerCommand(() -> 0.5),
-            Commands.waitSeconds(0.5),
-            cobra.setSquisherAndIndexerCommand(() -> 0),
-            cobra.setIndexerCommand(() -> Constants.cobraConstants.pivotCollectAngle),
-            Commands.runOnce(() -> leds.setState(Constants.LEDStates.nothing)));
+    // Driver B - Automated Amp Scoring, Automated  Driving.
+    driverController.b().whileTrue(
+      drive.driveToPose(
+        new Pose2d (
+          new Translation2d(Constants.Field.ampX, Constants.Field.blueAmpY-1)
+          , new Rotation2d(0)
+        )
+      )
+      .andThen(
+        scoreInAmp
+      )
+    );
 
-    driverController.rightBumper().onTrue(ampCommands);
-
-    driverController.b().whileTrue(drive.driveToPose(new Pose2d(
-            new Translation2d(Constants.Field.ampX, Constants.Field.blueAmpY-1),
-//            new Translation2d(Constants.Field.ampX,
-//            DriverStation.getAlliance().isPresent() ?
-//                    (DriverStation.getAlliance().get().equals(DriverStation.Alliance.Blue) ?
-//                            Constants.Field.blueAmpY :
-//                            Constants.Field.redAmpY) : Constants.Field.blueAmpY),
-            new Rotation2d(0))).andThen(ampCommands));
-
-    // speaker
-    driverController.a().onTrue(Commands.sequence(
-            Commands.runOnce(() -> leds.setState(Constants.LEDStates.speaker)),
-            cobra.setSquisherVelCommand(() -> Constants.cobraConstants.squisherShootSpeed),
-            cobra.setPivotPosCommand(() -> 1.279),
-            cobra.setIndexerCommand(() -> 0.5),
-            Commands.waitSeconds(0.5),
-            cobra.setSquisherAndIndexerCommand(() -> 0),
-            cobra.setPivotCommand(() -> Constants.cobraConstants.pivotCollectAngle),
-            Commands.runOnce(() -> leds.setState(Constants.LEDStates.speaker))));
-
-//    coDriverController.x().onTrue(Commands.runOnce(() -> shootingInSpeaker = false));
-//    coDriverController.y().onTrue(Commands.runOnce(() -> shootingInSpeaker = true));
-
-    coDriverController.a().whileTrue(collector.setCommand(() -> 0.5));
-//    coDriverController.a().onTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.staticColor)));
-//    coDriverController.b().onTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.off)));
-//    coDriverController.leftBumper().onTrue(Commands.runOnce(() -> leds.setState(Constants.LEDStates.rainbow)));
+    // Driver A - Automated Speaker Scoring, Manual Driving.
+    driverController.a().onTrue(
+      scoreInSpeaker
+    );
   }
 
   /**

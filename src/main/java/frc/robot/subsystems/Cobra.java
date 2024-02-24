@@ -284,7 +284,7 @@ public class Cobra extends SubsystemBase {
 
     public Command shootSpeaker(Supplier<Pose2d> robotPose) {
         return Commands.sequence(
-                        Commands.runOnce(() -> setSquisherVel(cobraConstants.squisherShootSpeed)),
+                        Commands.runOnce(() -> setSquisherVel(cobraConstants.squisherSpeakerShootSpeed)),
                         setPivotPosCommand(() -> { // get the angle for the pivot
                             Translation2d speakerPose;
                             if (DriverStation.getAlliance().isPresent()) {
